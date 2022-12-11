@@ -9,9 +9,25 @@ namespace ChromeDecryptor
     {
         static void Main(string[] args)
         {
-            Console.WriteLine(GetMaster());
-            ReadDB("Login data");
+            var local_appdata = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string Browser_path = "\\Google\\Chrome\\User Data";
 
+            string login_data = Path.GetFullPath(local_appdata + Browser_path+ "\\Default\\Login data");
+            string local_state = Path.GetFullPath(local_appdata + Browser_path + "\\local state");
+            
+            
+            try
+            {
+                Console.WriteLine(GetMaster(local_state));
+                ReadDB(login_data);
+
+
+            }
+            catch (Exception x)
+            {
+
+                Console.WriteLine(x.Message);
+            }
         }
 
         static string rawpass;
@@ -51,11 +67,11 @@ namespace ChromeDecryptor
             }
 
         }
-        public static string GetMaster()
+        public static string GetMaster(string path)
         {
             string key;
 
-            string json = File.ReadAllText("local state");
+            string json = File.ReadAllText(path);
 
             int lindex;
             int findex = json.IndexOf("os_crypt");
