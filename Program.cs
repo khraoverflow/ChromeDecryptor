@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using ChromeDecryptor.Utilities;
+using System.Web.Script.Serialization;
 
 namespace ChromeDecryptor
 {
@@ -57,31 +59,24 @@ namespace ChromeDecryptor
                 }
                 Console.WriteLine(username+":"+ b64pass +":"+siteurl);
                 Console.WriteLine();
-
-               
-
-           
-
-
-
             }
 
         }
         public static string GetMaster(string path)
         {
-            string key;
+            string key = "";
 
             string json = File.ReadAllText(path);
 
-            int lindex;
-            int findex = json.IndexOf("os_crypt");
-            findex = json.IndexOf("encrypted_key", findex);
-            findex = json.IndexOf(':', findex);
-            findex = json.IndexOf('"', findex) + 1;
 
-            lindex = json.IndexOf('"', findex + 2);
+            var dict = new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(json);
+            if (dict.ContainsKey("os_crypt"))
+            {
+                var osCrypt = dict["os_crypt"] as Dictionary<string, object>;
+                if (osCrypt != null && osCrypt.ContainsKey("encrypted_key"))
+                    key = osCrypt["encrypted_key"].ToString();
+            }
 
-            key = json.Substring(findex, lindex - findex);
             byte[] key_bytes = Encoding.Default.GetBytes(Encoding.Default.GetString(Convert.FromBase64String(key)).Remove(0, 5));
             byte[] masterKeyBytes = DPAPI.Decrypt(key_bytes);
             return Convert.ToBase64String(masterKeyBytes);
